@@ -10,13 +10,15 @@ CHECKPOINT_PATH = 'data/checkpoint/'
 
 
 def run_linear_stages(job_name, stages, config):
+    logger.info('Starting {job_name} job'.format(job_name=job_name))
     previous_checkpoint = None
     for stage_counter, stage in enumerate(stages[:-1]):
+        logger.info('Starting stage number: {stage_counter}. Running {stage_name}'.format(
+            stage_counter=stage_counter,
+            stage_name=stage.job.__name__
+        ))
+
         if previous_checkpoint is None:
-            logger.info('Starting stage number: {stage_counter}. Running {stage_name}'.format(
-                stage_counter=stage_counter,
-                stage_name=stage.job.__name__
-            ))
             result = stage.job(**stage.params)
         else:
             result = stage.job(previous_checkpoint, **stage.params)
@@ -28,10 +30,21 @@ def run_linear_stages(job_name, stages, config):
             stage_counter=stage_counter
         )
 
-    # TODO: Add logging
+        logger.info('Finished stage number: {stage_counter}, job name: {stage_name}, checkpoint: {checkpoint}'.format(
+            stage_counter=stage_counter,
+            stage_name=stage.job.__name__,
+            checkpoint=previous_checkpoint
+        ))
+
     final_stage = stages[-1]
+    logger.info('Starting final stage job number: {stage_counter}. Running {stage_name}'.format(
+        stage_counter=len(stages) - 1,
+        stage_name=final_stage.job.__name__
+    ))
     result = final_stage.job(previous_checkpoint, **final_stage.params)
     checkpoint(job_name, config['YEAR'], config['MONTH'], content=result)
+
+    logger.info('Finished {job_name} job'.format(job_name=job_name))
 
 
 def checkpoint(job_name, year, month, content, stage_name=None, stage_counter=None):

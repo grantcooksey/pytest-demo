@@ -24,9 +24,7 @@ def start_job(config=os.environ):
         }),
         job_runner.JobStage(job=count_people)
     ]
-    logger.info('Starting passenger_count job')
     job_runner.run_linear_stages(stages, config)
-    logger.info('Finished passenger_count job')
 
 
 def pull_file(year, month):
