@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 # This statement is only used to make it easier to only run unit test modules.
@@ -31,3 +33,29 @@ def test_raise_exception():
         divide_by_zero()
 
 
+@pytest.mark.skip
+def test_will_fail():
+    assert False
+
+
+# fixtures provide a dependable baseline to set up test data
+@pytest.fixture
+def env_var_config():
+    return {
+        'YEAR': '2019'
+    }
+
+
+# project code would call get_year_env_var()
+def get_year_env_var(config=os.environ):
+    return config['YEAR']
+
+
+# Test functions can receive fixture objects by naming them as an input argument
+def test_get_year_env_var(env_var_config):
+    assert get_year_env_var(config=env_var_config) == '2019'
+
+
+# fixtures are modular and can use other fixtures
+
+# mocking
