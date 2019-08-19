@@ -1,4 +1,9 @@
 import os
+import copy
+from unittest import mock
+import requests
+
+from taxi_trips import sleep_demo
 
 import pytest
 
@@ -17,6 +22,9 @@ def test_basic():
 
     # use python standard assert to verify expectations
     assert add_2(5) == 7
+
+    # Can use multiple assertions in the same test
+    assert add_2(1) == 3
 
 
 # functions that aren't prefixed with test are ignored
@@ -57,5 +65,68 @@ def test_get_year_env_var(env_var_config):
 
 
 # fixtures are modular and can use other fixtures
+@pytest.fixture
+def plus_one_year_env_config(env_var_config):
+    new_config = copy.copy(env_var_config)
+    new_config['YEAR'] = str(int(new_config['YEAR']) + 1)
+    return new_config
 
-# mocking
+
+def test_get_year_env_var_plus_one(plus_one_year_env_config, env_var_config):
+    assert get_year_env_var(config=plus_one_year_env_config) == '2020'
+
+
+# fixtures cover setup, but what about tear down?
+@pytest.fixture
+def tear_down():
+    print('I am called before the test')
+    yield 'the test'
+    print('I am called after the test')
+
+
+def test_tear_down(tear_down):
+    print(tear_down)
+
+
+# mock object substitutes and imitates a real object within a testing environment
+def test_mock():
+    mocked_object = mock.MagicMock()
+    mocked_object.some_function(this_is_a_parameter=5)
+    mocked_object.some_function.assert_called_once_with(this_is_a_parameter=5)
+
+
+# You don't want to reach out to external systems during a unit test
+def test_dont_hit_google():
+    mocked_request = mock.MagicMock()
+    mocked_response = mock.MagicMock()
+    mocked_request.get.return_value = mocked_response  # mock function
+    mocked_response.status_code = 200  # mock property
+
+    def get_google_response_status_code(request_service=requests):
+        response = request_service.get('https://google.com')
+        return response.status_code
+
+    assert get_google_response_status_code(request_service=mocked_request) == 200
+
+
+# but what if we can't access the internal function? We can patch it using pytest-mock
+def test_dont_hit_google_with_patching(mocker):
+    mocked_response = mock.MagicMock()
+    mocked_response.status_code = 200  # mock property
+    mocker.patch.object(requests, 'get', return_value=mocked_response)
+
+    def get_google_response_status_code():
+        response = requests.get('https://google.com')
+        return response.status_code
+
+    assert get_google_response_status_code() == 200
+
+
+# dont want to sleep in our unit tests so they run fast
+@pytest.fixture(autouse=True)
+def no_sleep_tonight(mocker):
+    mocker.patch.object(sleep_demo.time, 'sleep')
+
+
+def test_sleep_demo():
+    assert sleep_demo.long_sleep()
