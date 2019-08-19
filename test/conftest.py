@@ -1,3 +1,5 @@
+from taxi_trips import passenger_count
+
 import pytest
 
 
@@ -17,3 +19,7 @@ def config():
         'YEAR': '2018',
         'MONTH': '01'
     }
+
+@pytest.fixture(autouse=True)
+def patch_request_get(mocker):
+    mocker.patch.object(passenger_count.requests, 'get')

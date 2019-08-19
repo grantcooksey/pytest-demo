@@ -8,11 +8,6 @@ import pytest
 pytestmark = pytest.mark.unit
 
 
-@pytest.fixture(autouse=True)
-def patch_request_get(mocker):
-    mocker.patch.object(passenger_count.requests, 'get')
-
-
 @pytest.fixture
 def ten_person_taxi_report_file(raw_ten_passenger_taxi_records):
     return io.StringIO(raw_ten_passenger_taxi_records)
