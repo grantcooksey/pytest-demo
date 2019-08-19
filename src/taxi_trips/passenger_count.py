@@ -7,6 +7,7 @@ import requests
 logger = logging.getLogger(__name__)
 
 YELLOW_TAXI_ENDPOINT = 'https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_{year}-{month}.csv'
+REQUEST_TIMEOUT_SECONDS = 5
 
 FILE_FORMAT = '{year}_{month}_count_passengers.csv'
 RESULT_PATH = 'data/'
@@ -24,7 +25,8 @@ def pull_file(year, month):
     url = YELLOW_TAXI_ENDPOINT.format(year=year, month=month)
 
     logger.info(f'Started pulling file from {url}')
-    response = requests.get(url, allow_redirects=True)
+    response = requests.get(url, allow_redirects=True, timeout=REQUEST_TIMEOUT_SECONDS)
+    response.raise_for_status()
     logger.info(f'Finished pulling file from {url} with status code: {response.status_code}')
 
     return io.StringIO(response.text)
@@ -37,6 +39,8 @@ def count_people(taxi_report):
     for row in csv_reader:
         try:
             passenger_count += int(row['passenger_count'])
+        except KeyError:
+            logger.error('Missing passenger_count on line: {}'.format(csv_reader.line_num))
         except ValueError:
             logger.error('Failed to parse passenger_count on line: {}'.format(csv_reader.line_num))
     logger.info('Finished reading csv')
