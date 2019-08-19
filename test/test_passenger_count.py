@@ -1,5 +1,4 @@
 import io
-import copy
 from collections.abc import Iterable
 from unittest import mock
 from requests.exceptions import ConnectTimeout
@@ -12,14 +11,6 @@ pytestmark = pytest.mark.unit
 @pytest.fixture(autouse=True)
 def patch_request_get(mocker):
     mocker.patch.object(passenger_count.requests, 'get')
-
-
-@pytest.fixture
-def config():
-    return {
-        'YEAR': '2018',
-        'MONTH': '01'
-    }
 
 
 @pytest.fixture

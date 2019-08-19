@@ -1,3 +1,5 @@
 .idea
 *.csv
 *__pycache__
+*.tox/
+*egg-info/
