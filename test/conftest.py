@@ -23,3 +23,5 @@ def config():
 @pytest.fixture(autouse=True)
 def patch_request_get(mocker):
     mocker.patch.object(passenger_count.requests, 'get')
+
+    
